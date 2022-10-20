@@ -24,6 +24,8 @@ namespace NerdStore.Catalog.Domain
             Value = value;
             RegisterDate = registerDate;
             Image = image;
+
+            Validate();
         }
 
         public void Activate() => Active = true;
@@ -37,12 +39,14 @@ namespace NerdStore.Catalog.Domain
 
         public void ChangeDescription(string description)
         {
+            AssertionConcern.AssertArgumentNotEmpty(description, "The Product Description field can not be empty.");
             Description = description;
         }
 
         public void DebitInventory(int quantity)
         {
             if (quantity < 0) quantity *= -1;
+            if (!HasStock(quantity)) throw new DomainException("Insuficient stock");
             StockQuantity -= quantity;
         }
 
@@ -56,25 +60,11 @@ namespace NerdStore.Catalog.Domain
         }
         public void Validate()
         {
-
-        }
-
-    }
-
-    public class Category : Entity
-    {
-        public string  Name { get; private set; }
-        public int Code { get; private set; }
-
-        public Category(string name, int code)
-        {
-            Name = name;
-            Code = code;
-        }
-
-        public override string ToString()
-        {
-            return $"{Name} - {Code}";
+            AssertionConcern.AssertArgumentNotEmpty(Name, "The Product Name field can not be empty");
+            AssertionConcern.AssertArgumentNotEmpty(Description, "The Product Description field can not be empty");
+            AssertionConcern.AssertArgumentEquals(CategoryId, Guid.Empty, "The Product Category Id field can not be empty");
+            AssertionConcern.AssertArgumentLessOrEqualsMinimum(Value, 0, "The Product Value field can not be empty");
+            AssertionConcern.AssertArgumentNotEmpty(Image, "The Product Image field can not be empty");
         }
     }
 }
